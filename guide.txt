@@ -1,0 +1,114 @@
+AGENTIC AI — LinkedIn Post Automation Guide
+=============================================
+
+WHAT THIS PROJECT DOES
+---------------------
+Automatically generates LinkedIn posts using AI, opens the LinkedIn
+composer, pastes the content, takes a screenshot, and optionally
+publishes with human approval.
+
+
+PROJECT STRUCTURE
+-----------------
+agent/               Future AI agent prompts and workflows
+auth/
+  linkedin.json      Saved Playwright session (cookies)
+config/              Future configuration
+logs/                Future log output
+posts/
+  latest-post.txt    Generated post content
+  draft.png          Screenshot of the drafted post
+scheduler/           Future scheduling configs
+scripts/
+  generate-post.js   Generates post text from a topic
+  open-linkedin.js   Quick login verification script
+  run-agent.js       Full pipeline orchestration
+  save-session.js    One-time LinkedIn login to save session
+  scheduler.js       Cron-based scheduler (daily at 9 PM)
+create-draft.js      Opens LinkedIn, pastes post, screenshots
+save-session.js      (same as scripts/save-session.js)
+guide.txt            This file
+
+
+SETUP
+-----
+1. Install dependencies (already done):
+
+       npm install
+
+2. Save your LinkedIn session (one-time):
+
+       node save-session.js
+
+   A browser opens. Log in to LinkedIn manually. Once the feed
+   loads, the session is saved to auth/linkedin.json.
+
+
+USAGE
+-----
+
+A) One-step pipeline (recommended):
+
+       node scripts/run-agent.js "Your topic here"
+
+   Example: node scripts/run-agent.js "Agentic AI"
+
+   Flow:
+     STEP 1 → AI generates a post on the given topic
+     STEP 2 → Browser opens, logs in via saved session,
+               opens composer, pastes the post, takes screenshot
+     STEP 3 → Terminal shows "Draft ready for review"
+               and prompts "Approve this post? (y/n)"
+     STEP 4 → If "y", clicks the Post button
+               If "n" or anything else, closes without publishing
+
+B) Individual steps:
+
+   Generate post only:
+
+       node scripts/generate-post.js "Your topic"
+
+   Create draft + screenshot + approval only:
+
+       node create-draft.js
+
+C) Scheduled execution:
+
+       node scripts/scheduler.js
+
+   Runs the full pipeline daily at 9:00 PM with the topic
+   "AI, automation, and Playwright trends".
+   Prevents overlapping runs if previous one is still executing.
+
+
+WHAT WAS IMPLEMENTED
+--------------------
+1. Session management — Playwright saves LinkedIn cookies after
+   manual login for reuse across runs.
+
+2. Post generation — Mock AI generator that takes a topic and
+   writes a formatted LinkedIn post to posts/latest-post.txt.
+
+3. Draft creation — Opens LinkedIn feed, clicks "Start a post",
+   pastes content into the editor, takes a screenshot.
+
+4. Human approval — After screenshot, prompts the user to
+   approve or reject before publishing.
+
+5. Publishing — Clicks the LinkedIn "Post" button when approved.
+
+6. Orchestration — scripts/run-agent.js chains all steps into
+   a single command.
+
+7. Safety — Invalid approval input defaults to "no publish".
+   Scheduler prevents overlapping job execution.
+
+8. Scheduling — node-cron runs the pipeline daily at 9 PM.
+
+
+DEPENDENCIES
+------------
+- Node.js
+- Playwright (browser automation)
+- node-cron (scheduling)
+- dotenv (environment variables, not yet used)
